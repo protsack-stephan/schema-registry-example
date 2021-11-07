@@ -76,5 +76,4 @@ func main() {
 		log.Println(name)
 		log.Println(string(data))
 	}
-
 }
