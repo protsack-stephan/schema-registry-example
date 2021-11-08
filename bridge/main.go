@@ -68,7 +68,6 @@ func main() {
 
 	stream := streams.RevisionCreate(ctx, since, func(evt *eventstream.RevisionCreate) error {
 		if evt.Data.Database == database {
-			log.Println(evt.Data.Database, evt.Data.PageTitle)
 			art := new(schema.Article)
 			art.Name = evt.Data.PageTitle
 			art.Identifier = evt.Data.PageID
@@ -82,7 +81,7 @@ func main() {
 			ver.Comment = evt.Data.Comment
 			ver.Identifier = evt.Data.RevID
 
-			artKey, err := avro.Marshal(keySch, schema.NewKey(fmt.Sprintf("/articles/%s/%s", evt.Data.Database, evt.Data.PageTitle), schema.KeyTypeVersion))
+			artKey, err := avro.Marshal(keySch, schema.NewKey(fmt.Sprintf("/articles/%s/%s", evt.Data.Database, evt.Data.PageTitle), schema.KeyTypeArticle))
 
 			if err != nil {
 				return err

@@ -48,6 +48,7 @@ services:
       KSQL_KSQL_LOGGING_PROCESSING_STREAM_AUTO_CREATE: 'true'
       KSQL_KSQL_QUERY_PULL_TABLE_SCAN_ENABLED: 'true'
       KSQL_KSQL_SCHEMA_REGISTRY_URL: http://schemaregistry:8085
+      KSQL_KSQL_STREAMS_AUTO_OFFSET_RESET: 'earliest'
   
   kafka-ui:
     image: provectuslabs/kafka-ui:latest

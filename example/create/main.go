@@ -16,7 +16,7 @@ func main() {
 	queries := []string{
 		fmt.Sprintf("CREATE STREAM articles WITH (KAFKA_TOPIC='%s', KEY_FORMAT='AVRO', VALUE_FORMAT='AVRO');", schema.TopicArticles),
 		fmt.Sprintf("CREATE STREAM versions WITH (KAFKA_TOPIC='%s', KEY_FORMAT='AVRO', VALUE_FORMAT='AVRO');", schema.TopicVersions),
-		"CREATE STREAM articles_versions AS SELECT articles.*, versions.* FROM articles LEFT JOIN versions WITHIN 48 HOURS ON articles.version->identifier = versions.identifier;",
+		"CREATE STREAM articles_versions AS SELECT * FROM articles INNER JOIN versions WITHIN 24 HOURS ON articles.version->identifier = versions.identifier;",
 	}
 
 	for _, q := range queries {
