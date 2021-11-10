@@ -2,13 +2,11 @@ package main
 
 import (
 	"context"
-	"encoding/binary"
 	"fmt"
 	"log"
 	"time"
 
 	"github.com/confluentinc/confluent-kafka-go/kafka"
-	"github.com/hamba/avro"
 	eventstream "github.com/protsack-stephan/mediawiki-eventstream-client"
 	"github.com/protsack-stephan/schema-registry-example/pkg/schema"
 )
@@ -16,12 +14,6 @@ import (
 const database = "enwiki"
 const url = "https://en.wikipedia.org"
 const bootstrapServers = "localhost:29092"
-
-func formatWire(data []byte, id int) []byte {
-	idBytes := make([]byte, 4)
-	binary.BigEndian.PutUint32(idBytes, uint32(id))
-	return append(append(append([]byte{}, byte(0)), idBytes...), data...)
-}
 
 func main() {
 	ctx := context.Background()
@@ -81,13 +73,13 @@ func main() {
 			ver.Comment = evt.Data.Comment
 			ver.Identifier = evt.Data.RevID
 
-			artKey, err := avro.Marshal(keySch, schema.NewKey(fmt.Sprintf("/articles/%s/%s", evt.Data.Database, evt.Data.PageTitle), schema.KeyTypeArticle))
+			artKey, err := schema.Marshal(1, keySch, schema.NewKey(fmt.Sprintf("/articles/%s/%s", evt.Data.Database, evt.Data.PageTitle), schema.KeyTypeArticle))
 
 			if err != nil {
 				return err
 			}
 
-			artVal, err := avro.Marshal(artSch, art)
+			artVal, err := schema.Marshal(3, artSch, art)
 
 			if err != nil {
 				return err
@@ -95,21 +87,21 @@ func main() {
 
 			artMsg := &kafka.Message{
 				TopicPartition: kafka.TopicPartition{Topic: &schema.TopicArticles, Partition: kafka.PartitionAny},
-				Key:            formatWire(artKey, 1),
-				Value:          formatWire(artVal, 3),
+				Key:            artKey,
+				Value:          artVal,
 			}
 
 			if err := producer.Produce(artMsg, nil); err != nil {
 				return err
 			}
 
-			verKey, err := avro.Marshal(keySch, schema.NewKey(fmt.Sprintf("/versions/%s/%d", evt.Data.Database, evt.Data.RevID), schema.KeyTypeVersion))
+			verKey, err := schema.Marshal(1, keySch, schema.NewKey(fmt.Sprintf("/versions/%s/%d", evt.Data.Database, evt.Data.RevID), schema.KeyTypeVersion))
 
 			if err != nil {
 				return err
 			}
 
-			verVal, err := avro.Marshal(verSch, ver)
+			verVal, err := schema.Marshal(2, verSch, ver)
 
 			if err != nil {
 				return err
@@ -117,8 +109,8 @@ func main() {
 
 			verMsg := &kafka.Message{
 				TopicPartition: kafka.TopicPartition{Topic: &schema.TopicVersions, Partition: kafka.PartitionAny},
-				Key:            formatWire(verKey, 1),
-				Value:          formatWire(verVal, 2),
+				Key:            verKey,
+				Value:          verVal,
 			}
 
 			return producer.Produce(verMsg, nil)
